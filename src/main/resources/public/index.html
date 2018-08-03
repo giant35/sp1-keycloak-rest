@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+ copyright (c) thelook.cn
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="http://sso-dev.thelook.cn/auth/js/keycloak.js" type="text/javascript"></script>
+        <script src="https://unpkg.com/jquery@1.11.1/dist/jquery.min.js" type="text/javascript"></script>        
+    </head>
+    <body>
+        <a href="#" onclick="login()">登录</a>
+        <script>
+            var config = {
+                "realm": "master",
+                "auth-server-url": "http://sso-dev.thelook.cn/auth",
+                "ssl-required": "external",
+                "resource": "test1",
+                "clientId": "test1",
+                "public-client": true,
+                "use-resource-role-mappings": true,
+                "confidential-port": 0
+            };
+            var keycloak = Keycloak(config);
+            keycloak.init({onLoad: 'login-required'}).then(function (authenticated) {
+                alert(authenticated ? 'authenticated' : 'not authenticated');
+                //if(authenticated){
+                console.log('keycloak', keycloak);
+                if (authenticated) {
+                    $.ajaxSetup({
+                        headers: {'Authorization': 'Bearer ' + keycloak.token}
+                    });
+                    $.get('/user', function (data) {
+                        console.log('data', data);
+                    });
+                }
+                //}
+            }).catch(function () {
+                alert('failed to initialize');
+            });
+        </script>
+    </body>
+</html>
