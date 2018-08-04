@@ -4,14 +4,24 @@
 -->
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>keycloak js adapter demo</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="http://sso-dev.thelook.cn/auth/js/keycloak.js" type="text/javascript"></script>
         <script src="https://unpkg.com/jquery@1.11.1/dist/jquery.min.js" type="text/javascript"></script>        
     </head>
     <body>
-        <a href="#" onclick="login()">登录</a>
+        <ul>
+            <li>
+                <a href="#" onclick="login()">登录</a>
+            </li>
+            <li>
+                <a href="#" onclick="getUser()">获取用户信息</a>
+            </li>
+            <li>
+                <a href="#" onclick="logout()">退出登录</a>
+            </li>
+        </ul>
         <script>
             var config = {
                 "realm": "master",
@@ -24,22 +34,34 @@
                 "confidential-port": 0
             };
             var keycloak = Keycloak(config);
-            keycloak.init({onLoad: 'login-required'}).then(function (authenticated) {
-                alert(authenticated ? 'authenticated' : 'not authenticated');
-                //if(authenticated){
-                console.log('keycloak', keycloak);
-                if (authenticated) {
-                    $.ajaxSetup({
-                        headers: {'Authorization': 'Bearer ' + keycloak.token}
-                    });
-                    $.get('/user', function (data) {
-                        console.log('data', data);
-                    });
-                }
-                //}
-            }).catch(function () {
-                alert('failed to initialize');
-            });
+            keycloak.init({onLoad: 'check-sso'});
+            keycloak.onAuthSuccess = function () {
+                console.log('auth success');
+                $.ajaxSetup({
+                    headers: {'Authorization': 'Bearer ' + keycloak.token}
+                });
+            };
+            keycloak.onAuthLogout = function () {
+                console.log("auth logout");
+                $.ajaxSetup({
+                    headers: {}
+                });
+            };
+            keycloak.onAuthError = function () {
+                console.log('auth err');
+            };
+            function login() {
+                keycloak.login();
+            }
+            function logout() {
+                keycloak.logout();
+            }
+            function getUser() {
+                $.get('/user', function (data, status) {
+                    console.log('data', data, "status", status);
+                    alert("status" + status + " \ndata:" + data);
+                });
+            }
         </script>
     </body>
 </html>
